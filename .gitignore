@@ -1,0 +1,16 @@
+node_modules/
+
+# Perfis de navegador (contêm a sessão logada do LinkedIn — nunca versionar)
+perfil-navegador/
+perfil-navegador-edge/
+
+# Dados pessoais e resultados de execução
+candidaturas.csv
+conexoes.csv
+perguntas_pendentes.csv
+logs/
+.bot-rodando
+
+# Windows / OneDrive
+desktop.ini
+Thumbs.db

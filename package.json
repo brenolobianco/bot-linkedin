@@ -1,0 +1,20 @@
+{
+  "name": "linkedin-easy-apply",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bot que se candidata automaticamente a vagas com Candidatura Simplificada no LinkedIn",
+  "type": "module",
+  "scripts": {
+    "start": "node src/bot.js",
+    "login": "node src/login.js",
+    "simular": "node src/bot.js --simular",
+    "enviar": "node src/bot.js --enviar",
+    "conectar": "node src/conectar.js",
+    "agendar": "powershell -NoProfile -ExecutionPolicy Bypass -File agendar.ps1",
+    "desagendar": "powershell -NoProfile -ExecutionPolicy Bypass -File agendar.ps1 -Remover",
+    "test": "node test/teste-formulario.mjs && node test/teste-conexoes.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.63.0"
+  }
+}

@@ -56,6 +56,17 @@ npm run desagendar                           # remove o agendamento
   visível. Se já houver um bot rodando — qualquer um dos dois —, a janela só mostra o log ao vivo
   (duas execuções ao mesmo tempo não são possíveis: usam o mesmo perfil do navegador).
 
+## Como a busca funciona
+
+Cada termo de `busca.palavrasChave` é pesquisado uma vez em **cada ordenação** de `busca.ordenacao`:
+
+- `'recentes'` (`sortBy=DD`) — o que acabou de ser publicado.
+- `'relevancia'` (`sortBy=R`) — vagas boas que a ordem por data empurra para trás.
+
+As duas listas se sobrepõem bastante, mas não são iguais. Vagas já vistas na mesma execução, e as que já
+estão no `candidaturas.csv`, são puladas sem abrir — o custo de rodar as duas é só o carregamento das
+páginas de resultado. Deixe só `['recentes']` se quiser a execução mais curta.
+
 ## Como as respostas funcionam
 
 Para cada pergunta, o bot procura **na ordem** a primeira regra em `respostas` cujo `contem` aparece no

@@ -12,7 +12,7 @@ export default {
 
   busca: {
     // Cada termo vira uma busca separada no LinkedIn
-    palavrasChave: ['desenvolvedor javascript', 'desenvolvedor pleno', 'desenvolvedor front-end', 'desenvolvedor front end', 'desenvolvedor web',
+    palavrasChave: ['desenvolvedor', 'desenvolvedor pleno', 'desenvolvedor front-end', 'desenvolvedor front end', 'desenvolvedor web',
       'desenvolvedor python', 'desenvolvedor odoo', 'desenvolvedor php', 'desenvolvedor laravel', 'desenvolvedor node',
       'desenvolvedor react'],
     localizacao: 'Brasil',
@@ -24,12 +24,16 @@ export default {
     nivel: [],
     // Páginas de resultado por termo (25 vagas por página)
     maxPaginas: 3,
+    // Ordem dos resultados. Cada termo é buscado uma vez em CADA ordenação, porque o LinkedIn
+    // devolve conjuntos diferentes: 'recentes' pega o que acabou de ser publicado,
+    // 'relevancia' pega vagas boas que a ordem por data empurra para trás.
+    ordenacao: ['recentes', 'relevancia'],
   },
 
   filtros: {
     // Pula a vaga se o título contiver alguma destas PALAVRAS INTEIRAS (sem diferenciar maiúsculas/acentos):
     // 'java' pula "Desenvolvedor Java" mas não "JavaScript"
-    tituloNaoPodeConter: ['senior', 'sr', 'lead', 'gerente', 'manager', 'head', 'principal', 'staff', 'especialista',
+    tituloNaoPodeConter: ['senior', 'sr', 'lead', 'gerente', 'manager', 'head', 'principal', 'staff', 'cloud', 'especialista',
       // fora da stack
       'java', 'kotlin', 'ruby', 'rails', '.net', 'c#', 'data scientist', 'cientista de dados',
       // plataformas/legado que os títulos genéricos ("Developer", "Software Engineer") trouxeram junto
@@ -136,18 +140,24 @@ export default {
     { contem: ['perfil do linkedin', 'linkedin profile', 'linkedin url'], resposta: 'https://www.linkedin.com/in/breno-lobianco' },
     // PREENCHA: sem isto, perguntas de e-mail viram pendente (o bot não chuta e-mail)
     { contem: ['e-mail', 'email', 'correio eletronico'], resposta: '' },
-    { contem: ['current company', 'current employer', 'empresa atual', 'empresa em que trabalha', 'empresa em que voce trabalha',
-      'company where you work'], resposta: 'Clickideia' },
+    {
+      contem: ['current company', 'current employer', 'empresa atual', 'empresa em que trabalha', 'empresa em que voce trabalha',
+        'company where you work'], resposta: 'Clickideia'
+    },
     { contem: ['portfolio', 'github', 'website', 'site pessoal'], resposta: '' },
     // Valor por hora = 7000 ÷ 160 h (vem antes da regra de salário)
     { contem: ['valor/hora', 'valor hora', 'valor por hora', 'por hora', 'hourly', 'per hour'], resposta: '44' },
     // Mesmo valor para CLT e PJ
-    { contem: ['pretensao', 'expectativa salarial', 'valor mensal', 'faixa de remuneracao', 'remuneracao',
-      'salario', 'salary', 'compensation'], resposta: '7000' },
+    {
+      contem: ['pretensao', 'expectativa salarial', 'valor mensal', 'faixa de remuneracao', 'remuneracao',
+        'salario', 'salary', 'compensation'], resposta: '7000'
+    },
     // Inglês conversacional: perguntas que EXIGEM avançado/fluente/C1+ -> Não (antes da regra geral de inglês)
-    { contem: ['ingles avancado', 'ingles fluente', 'fluencia em ingles', 'ingles nativo', 'ingles c1', 'c1/c2', 'c1 ou c2',
-      'advanced english', 'fluent english', 'english fluency', 'native english', 'native speaker', 'english c1', 'c1 or c2',
-      'high level of english', 'nivel alto de ingles', 'ingles alto'], resposta: 'Não' },
+    {
+      contem: ['ingles avancado', 'ingles fluente', 'fluencia em ingles', 'ingles nativo', 'ingles c1', 'c1/c2', 'c1 ou c2',
+        'advanced english', 'fluent english', 'english fluency', 'native english', 'native speaker', 'english c1', 'c1 or c2',
+        'high level of english', 'nivel alto de ingles', 'ingles alto'], resposta: 'Não'
+    },
     // Lista = alternativas, na ordem: listas de nível ("Intermediário" ou "Conversational"); em Sim/Não ("Você fala inglês?"), "Sim"
     { contem: ['ingles', 'english'], resposta: ['Intermediário', 'Conversacional', 'Sim'] },
     { contem: ['espanhol', 'spanish'], resposta: 'básico' },

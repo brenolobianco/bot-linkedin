@@ -322,9 +322,13 @@ async function preencherFormulario(page, modal, vaga) {
 
 // ---------- busca e vagas ----------
 
-function urlBusca(palavra, pagina) {
+// LinkedIn: DD = mais recentes primeiro, R = mais relevantes primeiro
+const ORDENACOES = { recentes: 'DD', relevancia: 'R' };
+const ordenacoes = () => (config.busca.ordenacao?.length ? config.busca.ordenacao : ['recentes']).filter(o => ORDENACOES[o]);
+
+function urlBusca(palavra, pagina, ordenacao = 'recentes') {
   const { localizacao, periodo, modalidade = [], nivel = [] } = config.busca;
-  const p = new URLSearchParams({ keywords: palavra, location: localizacao, f_AL: 'true', sortBy: 'DD', start: String(pagina * 25) });
+  const p = new URLSearchParams({ keywords: palavra, location: localizacao, f_AL: 'true', sortBy: ORDENACOES[ordenacao] ?? 'DD', start: String(pagina * 25) });
   const periodos = { '24h': 'r86400', semana: 'r604800', mes: 'r2592000' };
   const modalidades = { presencial: 1, remoto: 2, hibrido: 3 };
   const niveis = { estagio: 1, assistente: 2, junior: 3, pleno_senior: 4, diretor: 5, executivo: 6 };
@@ -334,8 +338,8 @@ function urlBusca(palavra, pagina) {
   return `https://www.linkedin.com/jobs/search/?${p}`;
 }
 
-async function coletarVagas(page, palavra, pagina) {
-  await page.goto(urlBusca(palavra, pagina), { waitUntil: 'domcontentloaded' });
+async function coletarVagas(page, palavra, pagina, ordenacao) {
+  await page.goto(urlBusca(palavra, pagina, ordenacao), { waitUntil: 'domcontentloaded' });
   const achou = await page.waitForSelector('[data-occludable-job-id], [data-job-id]', { timeout: 15000 }).then(() => true).catch(() => false);
   if (!achou) return [];
   await esperar(2, 4);
@@ -495,34 +499,37 @@ async function main() {
     let candidaturas = 0;
 
     busca: for (const palavra of config.busca.palavrasChave) {
-      for (let pagina = 0; pagina < config.busca.maxPaginas; pagina++) {
-        const ids = await coletarVagas(page, palavra, pagina);
-        log(`Busca "${palavra}", página ${pagina + 1}: ${ids.length} vagas`);
-        if (!ids.length) break;
+      // A mesma busca ordenada por data e por relevância traz conjuntos diferentes de vagas
+      for (const ordem of ordenacoes()) {
+        for (let pagina = 0; pagina < config.busca.maxPaginas; pagina++) {
+          const ids = await coletarVagas(page, palavra, pagina, ordem);
+          log(`Busca "${palavra}" (${ordem}), página ${pagina + 1}: ${ids.length} vagas`);
+          if (!ids.length) break;
 
-        for (const id of ids) {
-          if (foraDaJanela()) { log('Passou do horário da janela. Encerrando.'); break busca; }
-          if (vistos.has(id) || pular.has(id)) continue;
-          vistos.add(id);
+          for (const id of ids) {
+            if (foraDaJanela()) { log('Passou do horário da janela. Encerrando.'); break busca; }
+            if (vistos.has(id) || pular.has(id)) continue;
+            vistos.add(id);
 
-          let r;
-          try {
-            r = await processarVaga(page, id);
-          } catch (erro) {
-            await descartar(page).catch(() => {});
-            r = { id, url: `https://www.linkedin.com/jobs/view/${id}/`, titulo: '', empresa: '', status: 'erro', detalhe: erro.message.split('\n')[0] };
-          }
-          registrar(r);
-          contagem[r.status] = (contagem[r.status] || 0) + 1;
-          // Ignoradas entram com o título junto: a linha "Candidatando:" só sai para as que passam nos filtros
-          if (r.status === 'ignorada') log(`  -> ignorada: ${r.titulo} | ${r.empresa} (${r.detalhe})`);
-          else log(`  -> ${r.status}${r.detalhe ? ` (${r.detalhe})` : ''}`);
+            let r;
+            try {
+              r = await processarVaga(page, id);
+            } catch (erro) {
+              await descartar(page).catch(() => {});
+              r = { id, url: `https://www.linkedin.com/jobs/view/${id}/`, titulo: '', empresa: '', status: 'erro', detalhe: erro.message.split('\n')[0] };
+            }
+            registrar(r);
+            contagem[r.status] = (contagem[r.status] || 0) + 1;
+            // Ignoradas entram com o título junto: a linha "Candidatando:" só sai para as que passam nos filtros
+            if (r.status === 'ignorada') log(`  -> ignorada: ${r.titulo} | ${r.empresa} (${r.detalhe})`);
+            else log(`  -> ${r.status}${r.detalhe ? ` (${r.detalhe})` : ''}`);
 
-          if (r.status === 'limite') { log('O LinkedIn bloqueou novas candidaturas por hoje. Encerrando.'); break busca; }
-          if (r.status === 'enviada' || r.status === 'simulada') {
-            if (r.status === 'enviada' && ++resumo.enviadas >= maxDia) { log(`Teto do dia atingido (${maxDia}).`); break busca; }
-            if (++candidaturas >= config.limites.maxCandidaturasPorExecucao) { log('Limite de candidaturas desta execução atingido.'); break busca; }
-            await esperar(...config.limites.pausaEntreCandidaturasSeg);
+            if (r.status === 'limite') { log('O LinkedIn bloqueou novas candidaturas por hoje. Encerrando.'); break busca; }
+            if (r.status === 'enviada' || r.status === 'simulada') {
+              if (r.status === 'enviada' && ++resumo.enviadas >= maxDia) { log(`Teto do dia atingido (${maxDia}).`); break busca; }
+              if (++candidaturas >= config.limites.maxCandidaturasPorExecucao) { log('Limite de candidaturas desta execução atingido.'); break busca; }
+              await esperar(...config.limites.pausaEntreCandidaturasSeg);
+            }
           }
         }
       }
@@ -534,7 +541,7 @@ async function main() {
   }
 }
 
-export { preencherCampos, preencherFormulario, escolherOpcao, urlBusca, tituloEEmpresa, motivoParaIgnorar, lerHistorico, idsParaPular, foraDaJanela, resumoDeHoje, PASTA_PERFIL };
+export { preencherCampos, preencherFormulario, escolherOpcao, urlBusca, ordenacoes, tituloEEmpresa, motivoParaIgnorar, lerHistorico, idsParaPular, foraDaJanela, resumoDeHoje, PASTA_PERFIL };
 
 // Só executa quando chamado diretamente (permite importar as funções nos testes)
 if (path.resolve(process.argv[1] || '') === fileURLToPath(import.meta.url)) {

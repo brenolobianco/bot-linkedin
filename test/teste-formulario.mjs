@@ -9,7 +9,7 @@ import config from '../config.js';
 // Histórico e pendentes do teste vão para arquivos temporários, não para os seus CSVs
 process.env.BOT_ARQ_PENDENTES = path.join(os.tmpdir(), 'teste-perguntas-pendentes.csv');
 process.env.BOT_ARQ_HISTORICO = path.join(os.tmpdir(), 'teste-candidaturas.csv');
-const { preencherCampos, preencherFormulario, escolherOpcao, urlBusca, tituloEEmpresa, motivoParaIgnorar, foraDaJanela, resumoDeHoje } =
+const { preencherCampos, preencherFormulario, escolherOpcao, urlBusca, ordenacoes, tituloEEmpresa, motivoParaIgnorar, foraDaJanela, resumoDeHoje } =
   await import('../src/bot.js');
 
 // O teste usa respostas e filtros próprios, independentes do que você preencheu no config.js
@@ -117,6 +117,13 @@ checar('escolherOpcao Fluente/Avançado', escolherOpcao(['Básico', 'Avançado (
 checar('escolherOpcao lista de alternativas', escolherOpcao(['Yes', 'No'], ['Avançado', 'Sim']) === 'Yes');
 checar('escolherOpcao Conversacional -> Conversational', escolherOpcao(['None', 'Conversational', 'Professional'], ['Intermediário', 'Conversacional', 'Sim']) === 'Conversational');
 checar('urlBusca filtra Easy Apply', urlBusca('dev', 1).includes('f_AL=true') && urlBusca('dev', 1).includes('start=25'));
+checar('ordenação: recentes -> sortBy=DD, relevância -> sortBy=R, padrão -> DD',
+  urlBusca('dev', 0, 'recentes').includes('sortBy=DD') && urlBusca('dev', 0, 'relevancia').includes('sortBy=R')
+  && urlBusca('dev', 0).includes('sortBy=DD'));
+config.busca.ordenacao = ['relevancia', 'inexistente'];
+checar('ordenacoes() descarta valor inválido do config', JSON.stringify(ordenacoes()) === '["relevancia"]');
+config.busca.ordenacao = [];
+checar('ordenacoes() vazio volta para recentes', JSON.stringify(ordenacoes()) === '["recentes"]');
 await page.evaluate(() => { document.title = '(3) 🚀 Lead Dev (.NET | Angular) | Luxoft | LinkedIn'; });
 const aba = await tituloEEmpresa(page);
 checar('título e empresa lidos do título da aba', aba.titulo === '🚀 Lead Dev (.NET | Angular)' && aba.empresa === 'Luxoft');

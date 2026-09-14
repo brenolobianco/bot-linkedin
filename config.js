@@ -48,7 +48,7 @@ export default {
 
   limites: {
     // Rodando de hora em hora (8h–22h): poucas por execução espalham as candidaturas ao longo do dia
-    maxCandidaturasPorExecucao: 5,
+    maxCandidaturasPorExecucao: 20,
     // Teto do dia (só as enviadas de verdade). Volume alto faz o LinkedIn restringir a conta: fique entre 25 e 50.
     maxCandidaturasPorDia: 40,
     // Pausa aleatória entre candidaturas, em segundos [mínimo, máximo]
@@ -92,11 +92,31 @@ export default {
   // true  = pausa, você responde na janela do navegador e aperta ENTER no terminal.
   pausarEmPerguntasDesconhecidas: false,
 
+  // Respostas de último recurso, usadas SÓ quando nenhuma regra de "respostas" casa com a pergunta.
+  // São o que evita que a vaga vire "pendente" por causa de uma pergunta que você nunca viu antes.
   padroes: {
-    // Usado em "Quantos anos de experiência você tem com X?" quando nenhuma resposta abaixo casar
+    // Usado em "Quantos anos de experiência você tem com X?"
     anosExperiencia: '2',
-    // Usado em perguntas Sim/Não sem resposta configurada. '' = não responder (vira pendente)
+    // Usado em perguntas Sim/Não. '' = não responder (vira pendente)
     simNao: 'Sim',
+    // Qualquer outro campo numérico (o LinkedIn marca esses campos com id terminado em "-numeric")
+    numero: '2',
+    // Qualquer outro campo de texto livre. '' = não responder (vira pendente)
+    textoLivre: 'N/A',
+    // true = em listas e botões de opção sem regra, escolhe uma opção em vez de deixar pendente.
+    // false = comportamento antigo (só responde o que você configurou).
+    chutarOpcao: true,
+    // Ordem de preferência ao chutar. Se nenhuma existir na lista, fica com a PRIMEIRA opção.
+    preferenciaOpcoes: ['Sim', 'Yes', 'Concordo', 'Agree', 'Intermediário', 'Intermediate'],
+    // Perguntas que o bot NUNCA chuta (nem texto livre, nem opção): ficam pendentes de propósito,
+    // porque um chute aqui é mentira ou compromisso — responda você mesmo na janela do navegador.
+    naoChutar: [
+      'ingles avancado', 'ingles fluente', 'fluencia em ingles', 'advanced english', 'fluent english',
+      'english fluency', 'native speaker',
+      'pretensao', 'salario', 'remuneracao', 'expectativa', 'salary', 'compensation',
+      'pcd', 'deficiencia', 'disability', 'genero', 'gender', 'raca', 'etnia', 'race', 'ethnicity',
+      'cpf', 'rg ', 'cnpj', 'data de nascimento', 'date of birth',
+    ],
   },
 
   // Caixas de seleção cujo texto contém alguma destas palavras são marcadas (termos, consentimento...)
@@ -113,6 +133,8 @@ export default {
     { contem: ['celular', 'telefone', 'phone', 'mobile'], resposta: '16997642652' },
     { contem: ['cidade', 'city', 'localizacao', 'location'], resposta: 'Ribeirão Preto' },
     { contem: ['perfil do linkedin', 'linkedin profile', 'linkedin url'], resposta: 'https://www.linkedin.com/in/breno-lobianco' },
+    // PREENCHA: sem isto, perguntas de e-mail viram pendente (o bot não chuta e-mail)
+    { contem: ['e-mail', 'email', 'correio eletronico'], resposta: '' },
     { contem: ['current company', 'current employer', 'empresa atual', 'empresa em que trabalha', 'empresa em que voce trabalha',
       'company where you work'], resposta: 'Clickideia' },
     { contem: ['portfolio', 'github', 'website', 'site pessoal'], resposta: '' },

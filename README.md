@@ -73,8 +73,21 @@ texto da pergunta (sem diferenciar maiúsculas e acentos):
 - A resposta pode ser uma **lista de alternativas**: o bot usa a primeira que existir entre as opções
   (campos de texto usam a primeira). Ex.: `resposta: ['Intermediário', 'Conversacional', 'Sim']` responde
   "Intermediário" numa lista de níveis e "Sim" em "Você fala inglês?".
-- Sem regra: perguntas de "quantos anos de experiência" usam `padroes.anosExperiencia`, e perguntas
-  Sim/Não usam `padroes.simNao`. Coloque regras específicas (ex.: visto/patrocínio → Não) **antes**.
+- Sem nenhuma regra que case, entram os **padrões** (`config.js > padroes`) — é o que evita que a vaga
+  vire pendente por uma pergunta que você nunca viu antes:
+
+| Tipo de campo | Padrão usado |
+|---|---|
+| "Quantos anos de experiência com X?" | `anosExperiencia` |
+| Sim/Não | `simNao` |
+| Numérico (o LinkedIn marca com id terminado em `-numeric`) | `numero` |
+| Texto livre | `textoLivre` (`''` = deixa pendente) |
+| Lista ou botões de opção | `chutarOpcao: true` → tenta `preferenciaOpcoes` na ordem; se nenhuma existir, fica com a **primeira opção** |
+
+  Coloque regras específicas (ex.: visto/patrocínio → Não) **antes**, porque elas vêm primeiro.
+- `padroes.naoChutar` é a trava: perguntas cujo texto contém uma dessas palavras **nunca** são chutadas
+  (pretensão salarial, fluência em inglês, PCD/gênero/raça, CPF, data de nascimento). Ficam pendentes de
+  propósito — chutar ali é mentira ou compromisso. Tire da lista o que você quiser que seja chutado.
 - Currículo: o LinkedIn reaproveita o último currículo enviado. Faça uma candidatura manual antes
   para deixá-lo selecionado.
 - `pausarEmPerguntasDesconhecidas: true` faz o bot parar e esperar você responder no navegador.

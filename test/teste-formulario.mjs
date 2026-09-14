@@ -149,4 +149,56 @@ const r = await preencherFormulario(page, modal, { id: 'teste', titulo: 'Teste',
 console.log('resultado do formulário:', r);
 checar('formulário travado vira pendente só com a pergunta que deu erro', r.status === 'pendente' && r.detalhe === 'Qual sua cor favorita?');
 
+// ---------- modo chute: perguntas que antes viravam pendente ----------
+// Perguntas reais tiradas do log de uma execução (o erro de digitação "comapny" é do anúncio).
+config.padroes = {
+  anosExperiencia: '2', simNao: 'Sim', numero: '2', textoLivre: 'N/A', chutarOpcao: true,
+  preferenciaOpcoes: ['Sim', 'Yes', 'Concordo', 'Agree', 'Intermediário', 'Intermediate'],
+  naoChutar: ['pretensao', 'salario', 'fluent english'],
+};
+const page2 = await b.newPage();
+await page2.setContent(`
+<div class="jobs-easy-apply-modal" role="dialog">
+  <form>
+    <fieldset>
+      <legend>Which best describes you?</legend>
+      <input type="radio" id="w1" name="w"><label for="w1">Individual developer</label>
+      <input type="radio" id="w2" name="w"><label for="w2">Company</label>
+    </fieldset>
+    <fieldset>
+      <legend>Would you be interested in non-exclusive licensing?</legend>
+      <input type="radio" id="n1" name="n"><label for="n1">No</label>
+      <input type="radio" id="n2" name="n"><label for="n2">Yes</label>
+    </fieldset>
+    <fieldset>
+      <legend>Qual sua pretensão salarial?</legend>
+      <input type="radio" id="s1" name="s"><label for="s1">Até R$ 3.000</label>
+      <input type="radio" id="s2" name="s"><label for="s2">R$ 7.000 a R$ 9.000</label>
+    </fieldset>
+    <div class="fb-dash-form-element">
+      <label for="lic">If a comapny, please write the comapny name that will license the code.</label>
+      <input id="lic" type="text">
+    </div>
+    <div class="fb-dash-form-element">
+      <label for="qtd">Quantos projetos você entregou?</label>
+      <input id="qtd-numeric" type="text">
+    </div>
+  </form>
+</div>`);
+const modal2 = page2.locator('.jobs-easy-apply-modal');
+const pendentes2 = await preencherCampos(page2, modal2);
+const marcado2 = nome => page2.evaluate(n => document.querySelector(`input[name=${n}]:checked`)?.nextElementSibling.textContent, nome);
+const estado2 = {
+  ...await page2.evaluate(() => ({ lic: document.getElementById('lic').value, qtd: document.getElementById('qtd-numeric').value })),
+  quemEhVoce: await marcado2('w'), licenciamento: await marcado2('n'), salario: await marcado2('s'),
+};
+console.log('estado (modo chute):', estado2);
+console.log('perguntas sem resposta (modo chute):', pendentes2);
+checar('opção sem regra -> 1ª opção em vez de pendente', estado2.quemEhVoce === 'Individual developer');
+checar('Yes/No sem regra -> Yes (padrão Sim/Não)', estado2.licenciamento === 'Yes');
+checar('texto livre sem regra -> padroes.textoLivre', estado2.lic === 'N/A');
+checar('campo -numeric sem regra -> padroes.numero', estado2.qtd === '2');
+checar('pergunta de naoChutar continua pendente e em branco', !estado2.salario && pendentes2.includes('Qual sua pretensão salarial?'));
+checar('só a pergunta protegida ficou pendente', pendentes2.length === 1);
+
 await b.close();

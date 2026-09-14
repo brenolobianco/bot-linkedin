@@ -118,6 +118,16 @@ function respostaPara(pergunta, opcoes) {
   return aceite(pergunta) ? opcoes.find(o => aceite(o) && !NEGACAO.test(norm(o))) ?? null : null;
 }
 
+// Perguntas que o bot nunca deve chutar (compromissos: salário, fluência, aceite de proposta...)
+const protegida = pergunta => (config.padroes.naoChutar ?? []).some(k => norm(pergunta).includes(norm(k)));
+
+// Último recurso para listas e botões de opção quando nenhuma regra casou com a pergunta:
+// tenta as palavras de padroes.preferenciaOpcoes e, se nenhuma existir, fica com a primeira opção.
+function chutarOpcao(pergunta, opcoes) {
+  if (!config.padroes.chutarOpcao || !opcoes.length || protegida(pergunta)) return null;
+  return escolherOpcao(opcoes, config.padroes.preferenciaOpcoes ?? []) ?? opcoes[0];
+}
+
 // resposta pode ser uma lista de alternativas: usa a primeira que existir entre as opções
 function escolherOpcao(opcoes, resposta) {
   if (Array.isArray(resposta)) return resposta.map(r => escolherOpcao(opcoes, r)).find(Boolean) ?? null;
@@ -168,6 +178,11 @@ async function preencherCampos(page, modal) {
     const pergunta = await rotulo(campo);
     let resposta = [buscarResposta(pergunta)].flat()[0]; // lista de alternativas: campo de texto usa a primeira
     if (resposta == null && PERGUNTA_ANOS.test(norm(pergunta))) resposta = config.padroes.anosExperiencia;
+    // Sem regra: campo numérico recebe padroes.numero; campo de texto, padroes.textoLivre
+    if (resposta == null && !protegida(pergunta)) {
+      const numerico = await campo.evaluate(e => /number/i.test(e.type || '') || /numeric/i.test(e.id || ''));
+      resposta = numerico ? config.padroes.numero : config.padroes.textoLivre;
+    }
     if (!resposta) { naoRespondidas.push(pergunta); continue; }
     await campo.fill(String(resposta));
     await esperar(0.8, 1.5);
@@ -182,7 +197,7 @@ async function preencherCampos(page, modal) {
     if (indice >= 0 && !PLACEHOLDER.test(opcoes[indice] || '')) continue;
     const pergunta = await rotulo(sel);
     const validas = opcoes.filter(o => !PLACEHOLDER.test(o));
-    const escolha = escolherOpcao(validas, respostaPara(pergunta, validas));
+    const escolha = escolherOpcao(validas, respostaPara(pergunta, validas)) ?? chutarOpcao(pergunta, validas);
     if (!escolha) { naoRespondidas.push(pergunta); continue; }
     await sel.selectOption({ index: opcoes.indexOf(escolha) });
   }
@@ -195,7 +210,7 @@ async function preencherCampos(page, modal) {
     const pergunta = await rotulo(grupo);
     const opcoes = [];
     for (let i = 0; i < qtd; i++) opcoes.push(await rotulo(radios.nth(i)));
-    const escolha = escolherOpcao(opcoes, respostaPara(pergunta, opcoes));
+    const escolha = escolherOpcao(opcoes, respostaPara(pergunta, opcoes)) ?? chutarOpcao(pergunta, opcoes);
     if (!escolha) { naoRespondidas.push(pergunta); continue; }
     await marcar(radios.nth(opcoes.indexOf(escolha)));
   }

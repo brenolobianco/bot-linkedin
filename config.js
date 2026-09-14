@@ -115,7 +115,8 @@ export default {
       'english fluency', 'native speaker',
       'pretensao', 'salario', 'remuneracao', 'expectativa', 'salary', 'compensation',
       'pcd', 'deficiencia', 'disability', 'genero', 'gender', 'raca', 'etnia', 'race', 'ethnicity',
-      'cpf', 'rg ', 'cnpj', 'data de nascimento', 'date of birth',
+      'acessibilidade', 'accessibility',
+      'cpf', 'cnpj', 'numero do rg', 'registro geral', 'data de nascimento', 'date of birth',
     ],
   },
 
@@ -141,10 +142,12 @@ export default {
     // Valor por hora = 7000 ÷ 160 h (vem antes da regra de salário)
     { contem: ['valor/hora', 'valor hora', 'valor por hora', 'por hora', 'hourly', 'per hour'], resposta: '44' },
     // Mesmo valor para CLT e PJ
-    { contem: ['pretensao salarial', 'expectativa salarial', 'remuneracao', 'salario', 'salary', 'compensation'], resposta: '7000' },
+    { contem: ['pretensao', 'expectativa salarial', 'valor mensal', 'faixa de remuneracao', 'remuneracao',
+      'salario', 'salary', 'compensation'], resposta: '7000' },
     // Inglês conversacional: perguntas que EXIGEM avançado/fluente/C1+ -> Não (antes da regra geral de inglês)
     { contem: ['ingles avancado', 'ingles fluente', 'fluencia em ingles', 'ingles nativo', 'ingles c1', 'c1/c2', 'c1 ou c2',
-      'advanced english', 'fluent english', 'english fluency', 'native english', 'native speaker', 'english c1', 'c1 or c2'], resposta: 'Não' },
+      'advanced english', 'fluent english', 'english fluency', 'native english', 'native speaker', 'english c1', 'c1 or c2',
+      'high level of english', 'nivel alto de ingles', 'ingles alto'], resposta: 'Não' },
     // Lista = alternativas, na ordem: listas de nível ("Intermediário" ou "Conversational"); em Sim/Não ("Você fala inglês?"), "Sim"
     { contem: ['ingles', 'english'], resposta: ['Intermediário', 'Conversacional', 'Sim'] },
     { contem: ['espanhol', 'spanish'], resposta: 'básico' },
@@ -158,6 +161,8 @@ export default {
     { contem: ['patrocinio', 'sponsorship', 'visto', 'visa'], resposta: 'Não' },
     { contem: ['autorizado a trabalhar', 'autorizacao para trabalhar', 'authorized to work', 'legally authorized', 'work authorization'], resposta: 'Sim' },
     { contem: ['located in brazil', 'based in brazil', 'live in brazil', 'reside no brasil', 'mora no brasil'], resposta: 'Sim' },
+    // Você filtra só vagas remotas: presença diária no escritório -> Não
+    { contem: ['on-site work', 'onsite work', 'trabalho presencial', 'presencial todos os dias', 'ir ao escritorio'], resposta: 'Não' },
     { contem: ['how did you hear', 'como ficou sabendo', 'como soube'], resposta: 'LinkedIn' },
     { contem: ['disponibilidade para inicio', 'quando pode comecar', 'notice period', 'aviso previo', 'start date'], resposta: 'Imediata' },
     { contem: ['nivel de escolaridade', 'formacao academica', 'ensino superior', "bachelor", 'degree'], resposta: 'Sim' },

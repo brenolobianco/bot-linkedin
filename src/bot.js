@@ -25,7 +25,7 @@ const PERGUNTA_ANOS = /quantos anos|anos de experiencia|tempo de experiencia|qua
 const NEGACAO = /\b(nao|no|not|discordo|disagree)\b|don'?t/;
 // Cada termo casa com o seu par em português/inglês ("Avançado" escolhe "Advanced")
 const SINONIMOS = Object.fromEntries([
-  ['sim', 'yes'], ['nao', 'no'], ['basico', 'basic'], ['intermediario', 'intermediate'],
+  ['sim', 'yes', 'si'], ['nao', 'no'], ['basico', 'basic'], ['intermediario', 'intermediate'],
   ['avancado', 'advanced'], ['fluente', 'fluent'], ['nativo', 'native'], ['conversacional', 'conversational'],
 ].flatMap(par => par.map(p => [p, par])));
 
@@ -111,7 +111,7 @@ function buscarResposta(pergunta) {
 function respostaPara(pergunta, opcoes) {
   const r = buscarResposta(pergunta);
   if (r != null) return r;
-  const ehSimNao = opcoes.length > 0 && opcoes.every(o => ['sim', 'nao', 'yes', 'no'].includes(norm(o)));
+  const ehSimNao = opcoes.length > 0 && opcoes.every(o => ['sim', 'nao', 'yes', 'no', 'si'].includes(norm(o)));
   if (ehSimNao) return config.padroes.simNao;
   // Termos/consentimento com opções como "Li e concordo": escolhe a de concordância
   const aceite = t => config.marcarCaixasQueContem.some(k => norm(t).includes(norm(k)));

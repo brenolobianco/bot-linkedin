@@ -171,6 +171,11 @@ await page2.setContent(`
       <input type="radio" id="n2" name="n"><label for="n2">Yes</label>
     </fieldset>
     <fieldset>
+      <legend>¿Esta de acuerdo en la prestación de servicios a plazo fijo de 3 meses?</legend>
+      <input type="radio" id="e1" name="e"><label for="e1">No</label>
+      <input type="radio" id="e2" name="e"><label for="e2">Sí</label>
+    </fieldset>
+    <fieldset>
       <legend>Qual sua pretensão salarial?</legend>
       <input type="radio" id="s1" name="s"><label for="s1">Até R$ 3.000</label>
       <input type="radio" id="s2" name="s"><label for="s2">R$ 7.000 a R$ 9.000</label>
@@ -191,6 +196,7 @@ const marcado2 = nome => page2.evaluate(n => document.querySelector(`input[name=
 const estado2 = {
   ...await page2.evaluate(() => ({ lic: document.getElementById('lic').value, qtd: document.getElementById('qtd-numeric').value })),
   quemEhVoce: await marcado2('w'), licenciamento: await marcado2('n'), salario: await marcado2('s'),
+  espanhol: await marcado2('e'),
 };
 console.log('estado (modo chute):', estado2);
 console.log('perguntas sem resposta (modo chute):', pendentes2);
@@ -198,6 +204,7 @@ checar('opção sem regra -> 1ª opção em vez de pendente', estado2.quemEhVoce
 checar('Yes/No sem regra -> Yes (padrão Sim/Não)', estado2.licenciamento === 'Yes');
 checar('texto livre sem regra -> padroes.textoLivre', estado2.lic === 'N/A');
 checar('campo -numeric sem regra -> padroes.numero', estado2.qtd === '2');
+checar('lista em espanhol: Sí conta como Sim/Não', estado2.espanhol === 'Sí');
 checar('pergunta de naoChutar continua pendente e em branco', !estado2.salario && pendentes2.includes('Qual sua pretensão salarial?'));
 checar('só a pergunta protegida ficou pendente', pendentes2.length === 1);
 
